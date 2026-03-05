@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Aplicación de conciliación de pagos - Compara cobros de Debo, Clover, AppyPF y MeLi" />
+  <title>Conciliación de Pagos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <script type="module" crossorigin src="/assets/index-DINurKK_.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-w65fHERS.css">
+</head>
+
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+              <rect width="32" height="32" rx="8" fill="url(#grad1)" />
+              <path d="M8 16L14 22L24 10" stroke="white" stroke-width="3" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <defs>
+                <linearGradient id="grad1" x1="0" y1="0" x2="32" y2="32">
+                  <stop offset="0%" stop-color="#6366f1" />
+                  <stop offset="100%" stop-color="#8b5cf6" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div>
+            <h1>Conciliación de Pagos</h1>
+            <p class="subtitle">Comparación y clasificación de cobros</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-grid">
+        <!-- Step 1: Turnos -->
+        <section class="card step-card" id="step1-card">
+          <div class="card-header">
+            <span class="step-badge">1</span>
+            <h2>Turnos</h2>
+            <button class="btn-icon" id="btn-add-turno" title="Agregar turno">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+          </div>
+          <div id="turnos-container">
+            <!-- Turno rows will be added here dynamically -->
+          </div>
+        </section>
+
+        <!-- Step 2: File Upload (compact) -->
+        <section class="card step-card" id="step2-card">
+          <div class="card-header">
+            <span class="step-badge">2</span>
+            <h2>Cargar Archivos</h2>
+          </div>
+          <div class="upload-row">
+            <div class="upload-chip" id="upload-debo" data-source="debo">
+              <span class="chip-dot debo"></span>
+              <span class="chip-label">DEBO</span>
+              <span class="chip-hint">.txt</span>
+              <span class="chip-status" id="status-debo"></span>
+              <input type="file" id="file-debo" accept=".txt,.csv,.tsv" hidden />
+            </div>
+            <div class="upload-chip" id="upload-clover" data-source="clover">
+              <span class="chip-dot clover"></span>
+              <span class="chip-label">CLOVER</span>
+              <span class="chip-hint">.csv</span>
+              <span class="chip-status" id="status-clover"></span>
+              <input type="file" id="file-clover" accept=".csv" hidden />
+            </div>
+            <div class="upload-chip disabled" id="upload-appypf" data-source="appypf">
+              <span class="chip-dot appypf"></span>
+              <span class="chip-label">APPYPF</span>
+              <span class="chip-hint">pronto</span>
+              <input type="file" id="file-appypf" accept=".csv,.xlsx" hidden disabled />
+              <span class="chip-status" id="status-appypf"></span>
+            </div>
+            <div class="upload-chip disabled" id="upload-meli" data-source="meli">
+              <span class="chip-dot meli"></span>
+              <span class="chip-label">MELI</span>
+              <span class="chip-hint">pronto</span>
+              <input type="file" id="file-meli" accept=".csv,.xlsx" hidden disabled />
+              <span class="chip-status" id="status-meli"></span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Action Row -->
+      <div class="action-row" style="display: flex; justify-content: center; margin-bottom: var(--space-md);">
+        <button class="btn-primary" id="btn-calcular-planillas" style="min-width: 200px;">
+          Calcular Planillas
+        </button>
+      </div>
+
+      <!-- Step 3: Results -->
+      <section class="card step-card results-section" id="step3-card" style="display: none;">
+        <div class="card-header">
+          <span class="step-badge">3</span>
+          <h2>Datos Formateados</h2>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs" id="result-tabs">
+          <button class="tab active" data-tab="debo">
+            <span class="tab-dot debo"></span>
+            DEBO
+            <span class="tab-count" id="count-debo">0</span>
+          </button>
+          <button class="tab" data-tab="clover">
+            <span class="tab-dot clover"></span>
+            CLOVER
+            <span class="tab-count" id="count-clover">0</span>
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="tab-content-debo">
+          <div class="table-toolbar">
+            <input type="text" class="search-input" id="search-debo" placeholder="Buscar en tabla..." />
+            <div class="table-info" id="info-debo"></div>
+          </div>
+          <div class="table-wrapper" id="table-debo"></div>
+        </div>
+        <div class="tab-content" id="tab-content-clover" style="display: none;">
+          <div class="table-toolbar">
+            <input type="text" class="search-input" id="search-clover" placeholder="Buscar en tabla..." />
+            <div class="table-info" id="info-clover"></div>
+          </div>
+          <div class="table-wrapper" id="table-clover"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Toast container -->
+    <div id="toast-container"></div>
+  </div>
+
+</body>
+
+</html>
