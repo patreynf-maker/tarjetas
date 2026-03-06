@@ -12,8 +12,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="./vite.svg" />
-  <script type="module" crossorigin src="./assets/index-DP6-bbJo.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-Dy5tmU5v.css">
+  <script type="module" crossorigin src="./assets/index-DU7az-mr.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BnIs89ZT.css">
 </head>
 
 <body>
@@ -85,11 +85,11 @@
               <span class="chip-status" id="status-clover"></span>
               <input type="file" id="file-clover" accept=".csv" hidden />
             </div>
-            <div class="upload-chip disabled" id="upload-appypf" data-source="appypf">
+            <div class="upload-chip" id="upload-appypf" data-source="appypf">
               <span class="chip-dot appypf"></span>
               <span class="chip-label">APPYPF</span>
-              <span class="chip-hint">pronto</span>
-              <input type="file" id="file-appypf" accept=".csv,.xlsx" hidden disabled />
+              <span class="chip-hint">.xlsx</span>
+              <input type="file" id="file-appypf" accept=".csv,.xlsx" hidden />
               <span class="chip-status" id="status-appypf"></span>
             </div>
             <div class="upload-chip" id="upload-meli" data-source="meli">
@@ -166,6 +166,11 @@
             Meli
             <span class="tab-count" id="count-meli">0</span>
           </button>
+          <button class="tab" data-tab="appypf">
+            <span class="tab-dot appypf"></span>
+            App YPF
+            <span class="tab-count" id="count-appypf">0</span>
+          </button>
         </div>
 
         <!-- Tab Content -->
@@ -189,6 +194,13 @@
             <div class="table-info" id="info-meli"></div>
           </div>
           <div class="table-wrapper" id="table-meli"></div>
+        </div>
+        <div class="tab-content" id="tab-content-appypf" style="display: none;">
+          <div class="table-toolbar">
+            <input type="text" class="search-input" id="search-appypf" placeholder="Buscar en tabla..." />
+            <div class="table-info" id="info-appypf"></div>
+          </div>
+          <div class="table-wrapper" id="table-appypf"></div>
         </div>
 
 
