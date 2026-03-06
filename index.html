@@ -12,8 +12,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="./vite.svg" />
-  <script type="module" crossorigin src="./assets/index-mB-nyUqR.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BnIs89ZT.css">
+  <script type="module" crossorigin src="./assets/index-DIJKPN4V.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BVIlzidL.css">
 </head>
 
 <body>
@@ -58,6 +58,15 @@
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
             </button>
+          </div>
+
+          <div class="turnos-header">
+            <span>Ref</span>
+            <span>Fecha</span>
+            <span>Turno</span>
+            <span>Inicio</span>
+            <span>Fin</span>
+            <span></span>
           </div>
           <div id="turnos-container">
             <!-- Turno rows will be added here dynamically -->
@@ -144,66 +153,72 @@
 
       <!-- Step 3: Results (Raw Data) -->
       <section class="card step-card results-section" id="step3-card" style="display: none;">
-        <div class="card-header">
+        <div class="card-header" id="header-results" style="cursor: pointer;">
           <span class="step-badge">4</span>
           <h2>Datos Formateados (Vista Previa)</h2>
-        </div>
-
-        <!-- Tabs -->
-        <div class="tabs" id="result-tabs">
-          <button class="tab active" data-tab="debo">
-            <span class="tab-dot debo"></span>
-            DEBO
-            <span class="tab-count" id="count-debo">0</span>
-          </button>
-          <button class="tab" data-tab="clover">
-            <span class="tab-dot clover"></span>
-            Clover
-            <span class="tab-count" id="count-clover">0</span>
-          </button>
-          <button class="tab" data-tab="meli">
-            <span class="tab-dot meli"></span>
-            Meli
-            <span class="tab-count" id="count-meli">0</span>
-          </button>
-          <button class="tab" data-tab="appypf">
-            <span class="tab-dot appypf"></span>
-            App YPF
-            <span class="tab-count" id="count-appypf">0</span>
+          <button class="btn-icon btn-collapse" id="btn-collapse-results" title="Colapsar/Expandir">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
           </button>
         </div>
 
-        <!-- Tab Content -->
-        <div class="tab-content" id="tab-content-debo">
-          <div class="table-toolbar">
-            <input type="text" class="search-input" id="search-debo" placeholder="Buscar en tabla..." />
-            <div class="table-info" id="info-debo"></div>
+        <div class="section-body" id="results-body">
+          <!-- Tabs -->
+          <div class="tabs" id="result-tabs">
+            <button class="tab active" data-tab="debo">
+              <span class="tab-dot debo"></span>
+              DEBO
+              <span class="tab-count" id="count-debo">0</span>
+            </button>
+            <button class="tab" data-tab="clover">
+              <span class="tab-dot clover"></span>
+              Clover
+              <span class="tab-count" id="count-clover">0</span>
+            </button>
+            <button class="tab" data-tab="meli">
+              <span class="tab-dot meli"></span>
+              Meli
+              <span class="tab-count" id="count-meli">0</span>
+            </button>
+            <button class="tab" data-tab="appypf">
+              <span class="tab-dot appypf"></span>
+              App YPF
+              <span class="tab-count" id="count-appypf">0</span>
+            </button>
           </div>
-          <div class="table-wrapper" id="table-debo"></div>
-        </div>
-        <div class="tab-content" id="tab-content-clover" style="display: none;">
-          <div class="table-toolbar">
-            <input type="text" class="search-input" id="search-clover" placeholder="Buscar en tabla..." />
-            <div class="table-info" id="info-clover"></div>
-          </div>
-          <div class="table-wrapper" id="table-clover"></div>
-        </div>
-        <div class="tab-content" id="tab-content-meli" style="display: none;">
-          <div class="table-toolbar">
-            <input type="text" class="search-input" id="search-meli" placeholder="Buscar en tabla..." />
-            <div class="table-info" id="info-meli"></div>
-          </div>
-          <div class="table-wrapper" id="table-meli"></div>
-        </div>
-        <div class="tab-content" id="tab-content-appypf" style="display: none;">
-          <div class="table-toolbar">
-            <input type="text" class="search-input" id="search-appypf" placeholder="Buscar en tabla..." />
-            <div class="table-info" id="info-appypf"></div>
-          </div>
-          <div class="table-wrapper" id="table-appypf"></div>
-        </div>
 
-
+          <!-- Tab Content -->
+          <div class="tab-content" id="tab-content-debo">
+            <div class="table-toolbar">
+              <input type="text" class="search-input" id="search-debo" placeholder="Buscar en tabla..." />
+              <div class="table-info" id="info-debo"></div>
+            </div>
+            <div class="table-wrapper" id="table-debo"></div>
+          </div>
+          <div class="tab-content" id="tab-content-clover" style="display: none;">
+            <div class="table-toolbar">
+              <input type="text" class="search-input" id="search-clover" placeholder="Buscar en tabla..." />
+              <div class="table-info" id="info-clover"></div>
+            </div>
+            <div class="table-wrapper" id="table-clover"></div>
+          </div>
+          <div class="tab-content" id="tab-content-meli" style="display: none;">
+            <div class="table-toolbar">
+              <input type="text" class="search-input" id="search-meli" placeholder="Buscar en tabla..." />
+              <div class="table-info" id="info-meli"></div>
+            </div>
+            <div class="table-wrapper" id="table-meli"></div>
+          </div>
+          <div class="tab-content" id="tab-content-appypf" style="display: none;">
+            <div class="table-toolbar">
+              <input type="text" class="search-input" id="search-appypf" placeholder="Buscar en tabla..." />
+              <div class="table-info" id="info-appypf"></div>
+            </div>
+            <div class="table-wrapper" id="table-appypf"></div>
+          </div>
+        </div>
       </section>
     </main>
 
