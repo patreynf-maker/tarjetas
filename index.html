@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="./vite.svg" />
-  <script type="module" crossorigin src="./assets/index-B52FVr8F.js"></script>
+  <script type="module" crossorigin src="./assets/index-DZJxBF2o.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-CZThUFs6.css">
 </head>
 
@@ -121,11 +121,32 @@
         </button>
       </div>
 
-      <!-- Step 3: Results -->
+      <!-- Reconciliation Dashboard (Main View) -->
+      <section id="reconcile-dashboard" class="reconcile-dashboard-section"
+        style="display: none; margin-bottom: var(--space-xl);">
+        <div class="card">
+          <div class="card-header">
+            <span class="step-badge" style="background: var(--accent-primary);">3</span>
+            <h2>Panel de Conciliación</h2>
+          </div>
+          <div id="reconcile-container" class="reconcile-grid">
+            <div class="reconcile-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 3h5v5M8 21H3v-5M21 3L14 10M3 21l7-7" />
+                <path d="M14 14l7 7M10 10L3 3" />
+              </svg>
+              <p>Complete la asignación de planillas para ver los resultados aquí.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 3: Results (Raw Data) -->
       <section class="card step-card results-section" id="step3-card" style="display: none;">
         <div class="card-header">
-          <span class="step-badge">3</span>
-          <h2>Datos Formateados</h2>
+          <span class="step-badge">4</span>
+          <h2>Datos Formateados (Vista Previa)</h2>
         </div>
 
         <!-- Tabs -->
@@ -139,10 +160,6 @@
             <span class="tab-dot clover"></span>
             Clover
             <span class="tab-count" id="count-clover">0</span>
-          </button>
-          <button class="tab" data-tab="reconcile">
-            <span class="tab-dot" style="background: var(--accent-primary);"></span>
-            Conciliación
           </button>
         </div>
 
@@ -162,18 +179,7 @@
           <div class="table-wrapper" id="table-clover"></div>
         </div>
 
-        <div class="tab-content" id="tab-content-reconcile" style="display: none;">
-          <div id="reconcile-container" class="reconcile-grid">
-            <div class="reconcile-placeholder">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 3h5v5M8 21H3v-5M21 3L14 10M3 21l7-7" />
-                <path d="M14 14l7 7M10 10L3 3" />
-              </svg>
-              <p>Cargue los archivos de DEBO y Clover para comenzar la conciliación.</p>
-            </div>
-          </div>
-        </div>
+
       </section>
     </main>
 
