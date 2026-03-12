@@ -12,8 +12,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="./vite.svg" />
-  <script type="module" crossorigin src="./assets/index-CtHFbFsK.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-C-VP4wMY.css">
+  <script type="module" crossorigin src="./assets/index-BRgu2K6i.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BIxwiaOt.css">
 </head>
 
 <body>
@@ -38,6 +38,15 @@
           <div>
             <h1>Conciliación de Pagos</h1>
             <p class="subtitle">Comparación y clasificación de cobros</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div class="mode-toggle-container">
+            <div class="mode-pill-toggle" id="mode-toggle">
+              <div class="mode-pill-bg"></div>
+              <button class="mode-pill-btn active" data-mode="playa">⛽ Playa</button>
+              <button class="mode-pill-btn" data-mode="shop">🛒 Shop</button>
+            </div>
           </div>
         </div>
       </div>
@@ -79,7 +88,7 @@
             <span class="step-badge">2</span>
             <h2>Cargar Archivos</h2>
           </div>
-          <div class="upload-row">
+          <div class="upload-column">
             <div class="upload-chip" id="upload-debo" data-source="debo">
               <span class="chip-dot debo"></span>
               <span class="chip-label">DEBO</span>
@@ -107,6 +116,13 @@
               <span class="chip-hint">.xlsx</span>
               <input type="file" id="file-meli" accept=".csv,.xlsx,.xls" hidden />
               <span class="chip-status" id="status-meli"></span>
+            </div>
+            <div class="upload-chip" id="upload-pedidosya" data-source="pedidosya" style="display: none;">
+              <span class="chip-dot pedidosya" style="background: #e11932;"></span>
+              <span class="chip-label">PEDIDOS YA</span>
+              <span class="chip-hint">.xlsx</span>
+              <input type="file" id="file-pedidosya" accept=".csv,.xlsx,.xls" hidden />
+              <span class="chip-status" id="status-pedidosya"></span>
             </div>
           </div>
         </section>
