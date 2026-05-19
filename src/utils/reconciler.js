@@ -9,6 +9,7 @@
  * @param {Array} cloverRows 
  * @param {Array} meliRows Optional Mercado Pago rows
  * @param {Array} appYpfRows Optional APP YPF rows
+ * @param {Array} pedidosYaRows Optional Pedidos Ya rows
  * @param {Array} activePlanillas Optional list of planilla numbers to include
  * @param {Array} manualMatches Optional user-defined matches [{deboId, externalId}]
  * @returns {Object} Grouped reconciliation results by Planilla -> Tarjeta
@@ -49,100 +50,128 @@ export function reconcile(deboRows, cloverRows, meliRows = [], appYpfRows = [], 
         const appYpfInPlanilla = filteredAppYpf.filter(r => String(r.Planilla) === planilla);
         const pedidosYaInPlanilla = filteredPedidosYa.filter(r => String(r.Planilla) === planilla);
 
+        // ── PRE-RESOLVE MANUAL MATCHES at planilla level (supports cross-tarjeta) ──
+        // By resolving here, a DEBO row from VISA CREDITO can be matched to an
+        // MC DEBITO external row — the DEBO row is "moved" to the target group
+        // and flagged with _originalTarjeta so the UI can display its origin.
+        const allExternalInPlanilla = [
+            ...cloverInPlanilla,
+            ...meliInPlanilla,
+            ...appYpfInPlanilla,
+            ...pedidosYaInPlanilla,
+        ];
+
+        const planillaUsedDeboIds = new Set();
+        const planillaUsedExtIds = new Set();
+        const resolvedByTarjeta = {}; // extTarjetaKey -> [resolvedMatch]
+
+        if (manualMatches && manualMatches.length > 0) {
+            manualMatches.forEach(match => {
+                const dRow = deboInPlanilla.find(r => r._id === match.deboId);
+                const eRow = allExternalInPlanilla.find(r => r._id === match.externalId);
+                if (!dRow || !eRow) return;
+                if (planillaUsedDeboIds.has(dRow._id) || planillaUsedExtIds.has(eRow._id)) return;
+
+                const isMeli = meliInPlanilla.some(r => r._id === eRow._id);
+                const isAppYpf = appYpfInPlanilla.some(r => r._id === eRow._id);
+                const isPedidosYa = pedidosYaInPlanilla.some(r => r._id === eRow._id);
+                const extTarjetaKey = isMeli ? 'MERCADOPAGO'
+                    : isAppYpf ? 'APP YPF'
+                    : isPedidosYa ? 'PEDIDOS YA'
+                    : (eRow.Tarjeta || '');
+
+                const isCross = dRow.Tarjeta !== extTarjetaKey;
+                const dImporte = parseDecimal(dRow.Importe);
+                const eImporte = parseDecimal(eRow.Importe);
+
+                if (!resolvedByTarjeta[extTarjetaKey]) resolvedByTarjeta[extTarjetaKey] = [];
+                resolvedByTarjeta[extTarjetaKey].push({
+                    // Tag cross-matched DEBO rows with their original tarjeta
+                    deboRow: isCross ? { ...dRow, _originalTarjeta: dRow.Tarjeta } : dRow,
+                    extRow: eRow,
+                    isCross,
+                    isMeli, isAppYpf, isPedidosYa,
+                    status: Math.abs(dImporte - eImporte) > 0.01 ? 'diff' : 'ok',
+                    diff: dImporte - eImporte,
+                });
+
+                planillaUsedDeboIds.add(dRow._id);
+                planillaUsedExtIds.add(eRow._id);
+            });
+        }
+
         // Within this planilla, group by Tarjeta
         const cardSet = new Set([
             ...deboInPlanilla.map(r => r.Tarjeta),
             ...cloverInPlanilla.map(r => r.Tarjeta)
         ]);
-
-        // Add MercadoPago and App YPF groups if they have data, 
-        // even if they don't appear as specific tarjetas in DEBO/Clover
         if (meliInPlanilla.length > 0) cardSet.add('MERCADOPAGO');
         if (appYpfInPlanilla.length > 0) cardSet.add('APP YPF');
         if (pedidosYaInPlanilla.length > 0) cardSet.add('PEDIDOS YA');
+        // Ensure tarjeta groups from cross-matches also appear in the set
+        Object.keys(resolvedByTarjeta).forEach(k => cardSet.add(k));
 
         const tarjetas = [...cardSet].filter(Boolean).sort();
 
         const cardGroups = {};
         let planillaTotalDebo = 0;
-        let planillaTotalClover = 0; // This will actually be "Total External Source" (Clover or MELI)
+        let planillaTotalClover = 0;
 
         tarjetas.forEach(tarjeta => {
             if (!tarjeta) return;
 
-            const deboInCard = deboInPlanilla.filter(r => r.Tarjeta === tarjeta);
-
-            // SPECIAL CASES
             const isMeli = tarjeta.toUpperCase() === 'MERCADOPAGO';
             const isAppYpf = tarjeta.toUpperCase() === 'APP YPF';
             const isPedidosYa = tarjeta.toUpperCase() === 'PEDIDOS YA';
 
-            let externalRows = [];
-            if (isMeli) {
-                externalRows = meliInPlanilla;
-            } else if (isAppYpf) {
-                externalRows = appYpfInPlanilla;
-            } else if (isPedidosYa) {
-                externalRows = pedidosYaInPlanilla;
-            } else {
-                externalRows = cloverInPlanilla.filter(r => r.Tarjeta === tarjeta);
-            }
+            // Exclude DEBO rows already consumed by planilla-level manual matches
+            const deboInCard = deboInPlanilla.filter(r =>
+                r.Tarjeta === tarjeta && !planillaUsedDeboIds.has(r._id)
+            );
+
+            // Exclude external rows already consumed by planilla-level manual matches
+            let baseExternalRows = [];
+            if (isMeli) baseExternalRows = meliInPlanilla;
+            else if (isAppYpf) baseExternalRows = appYpfInPlanilla;
+            else if (isPedidosYa) baseExternalRows = pedidosYaInPlanilla;
+            else baseExternalRows = cloverInPlanilla.filter(r => r.Tarjeta === tarjeta);
+            const externalRows = baseExternalRows.filter(r => !planillaUsedExtIds.has(r._id));
 
             // DUPLICATE DETECTION FOR DEBO in this group
             const couponCounts = {};
             deboInCard.forEach(r => {
                 const cup = String(r['Cupón'] || '').trim();
-                if (cup && cup !== '0') {
-                    couponCounts[cup] = (couponCounts[cup] || 0) + 1;
-                }
+                if (cup && cup !== '0') couponCounts[cup] = (couponCounts[cup] || 0) + 1;
             });
             deboInCard.forEach(r => {
                 const cup = String(r['Cupón'] || '').trim();
-                if (cup && cup !== '0' && couponCounts[cup] > 1) {
-                    r._isDuplicate = true;
-                } else {
-                    delete r._isDuplicate;
-                }
+                if (cup && cup !== '0' && couponCounts[cup] > 1) r._isDuplicate = true;
+                else delete r._isDuplicate;
             });
 
             const matched = [];
             const onlyDebo = [];
             const onlyExternal = [];
-
             const usedExternalIds = new Set();
             const usedDeboIds = new Set();
 
-            // PASS 0: Manual Matches
-            if (manualMatches && manualMatches.length > 0) {
-                manualMatches.forEach(match => {
-                    const dIdx = deboInCard.findIndex(r => r._id === match.deboId);
-                    const eIdx = externalRows.findIndex(r => r._id === match.externalId);
-
-                    if (dIdx !== -1 && eIdx !== -1) {
-                        const dRow = deboInCard[dIdx];
-                        const eRow = externalRows[eIdx];
-
-                        if (!usedDeboIds.has(dRow._id) && !usedExternalIds.has(eRow._id)) {
-                            usedDeboIds.add(dRow._id);
-                            usedExternalIds.add(eRow._id);
-
-                            const dImporte = parseDecimal(dRow.Importe);
-                            const eImporte = parseDecimal(eRow.Importe);
-
-                            matched.push({
-                                debo: dRow,
-                                clover: eRow,
-                                status: Math.abs(dImporte - eImporte) > 0.01 ? 'diff' : 'ok',
-                                diff: dImporte - eImporte,
-                                isMeli,
-                                isAppYpf,
-                                isPedidosYa,
-                                isManual: true
-                            });
-                        }
-                    }
+            // PASS 0: Pre-resolved manual matches for this tarjeta group
+            const manualForThisTarjeta = resolvedByTarjeta[tarjeta] || [];
+            manualForThisTarjeta.forEach(m => {
+                usedDeboIds.add(m.deboRow._id);
+                usedExternalIds.add(m.extRow._id);
+                matched.push({
+                    debo: m.deboRow,   // has _originalTarjeta if cross-matched
+                    clover: m.extRow,
+                    status: m.status,
+                    diff: m.diff,
+                    isMeli: m.isMeli,
+                    isAppYpf: m.isAppYpf,
+                    isPedidosYa: m.isPedidosYa,
+                    isManual: true,
+                    isCrossMatch: m.isCross,
                 });
-            }
+            });
 
             // Two-Pass Match Logic
             if (isAppYpf) {
@@ -157,10 +186,7 @@ export function reconcile(deboRows, cloverRows, meliRows = [], appYpfRows = [], 
                         if (usedExternalIds.has(extRow._id)) return;
                         const extImporte = parseDecimal(extRow.Importe);
                         const diff = Math.abs(dImporte - extImporte);
-                        if (diff < minDiff) {
-                            minDiff = diff;
-                            foundIdx = extIdx;
-                        }
+                        if (diff < minDiff) { minDiff = diff; foundIdx = extIdx; }
                     });
 
                     if (foundIdx !== -1) {
@@ -168,15 +194,11 @@ export function reconcile(deboRows, cloverRows, meliRows = [], appYpfRows = [], 
                         usedExternalIds.add(extRow._id);
                         usedDeboIds.add(dRow._id);
                         const extImporte = parseDecimal(extRow.Importe);
-                        const hasDiff = Math.abs(dImporte - extImporte) > 0.01;
                         matched.push({
-                            debo: dRow,
-                            clover: extRow,
-                            status: hasDiff ? 'diff' : 'ok',
+                            debo: dRow, clover: extRow,
+                            status: Math.abs(dImporte - extImporte) > 0.01 ? 'diff' : 'ok',
                             diff: dImporte - extImporte,
-                            isMeli: isMeli,
-                            isAppYpf: isAppYpf,
-                            isPedidosYa: isPedidosYa
+                            isMeli, isAppYpf, isPedidosYa
                         });
                     } else {
                         onlyDebo.push(dRow);
@@ -194,15 +216,12 @@ export function reconcile(deboRows, cloverRows, meliRows = [], appYpfRows = [], 
                     for (let extIdx = 0; extIdx < externalRows.length; extIdx++) {
                         const extRow = externalRows[extIdx];
                         if (usedExternalIds.has(extRow._id)) continue;
-
                         const extLote = isMeli
                             ? String(extRow['Referencia ext.'] || '').trim()
                             : String(extRow['Núm. de lote'] || '').trim();
                         const extImporte = parseDecimal(extRow.Importe);
-
                         if (extLote === dLote && Math.abs(extImporte - dImporte) < 0.01) {
-                            foundIdx = extIdx;
-                            break;
+                            foundIdx = extIdx; break;
                         }
                     }
 
@@ -210,18 +229,11 @@ export function reconcile(deboRows, cloverRows, meliRows = [], appYpfRows = [], 
                         const extRow = externalRows[foundIdx];
                         usedExternalIds.add(extRow._id);
                         usedDeboIds.add(dRow._id);
-                        matched.push({
-                            debo: dRow,
-                            clover: extRow,
-                            status: 'ok',
-                            diff: 0,
-                            isMeli: isMeli,
-                            isAppYpf: isAppYpf
-                        });
+                        matched.push({ debo: dRow, clover: extRow, status: 'ok', diff: 0, isMeli, isAppYpf });
                     }
                 });
 
-                // PASS 2: Removed as per request (Clover/Meli shouldn't match automatically with different amounts)
+                // Remaining unmatched DEBO rows
                 deboInCard.forEach((dRow) => {
                     if (usedDeboIds.has(dRow._id)) return;
                     onlyDebo.push(dRow);
@@ -229,29 +241,22 @@ export function reconcile(deboRows, cloverRows, meliRows = [], appYpfRows = [], 
             }
 
             externalRows.forEach((extRow) => {
-                if (!usedExternalIds.has(extRow._id)) {
-                    onlyExternal.push(extRow);
-                }
+                if (!usedExternalIds.has(extRow._id)) onlyExternal.push(extRow);
             });
 
-            const totalDebo = deboInCard.reduce((sum, r) => sum + parseDecimal(r.Importe), 0);
-            const totalExternal = externalRows.reduce((sum, r) => sum + parseDecimal(r.Importe), 0);
+            // Totals: include manual cross-match rows in this group's totals
+            const manualDeboImportes = manualForThisTarjeta.reduce((sum, m) => sum + parseDecimal(m.deboRow.Importe), 0);
+            const manualExtImportes = manualForThisTarjeta.reduce((sum, m) => sum + parseDecimal(m.extRow.Importe), 0);
+            const totalDebo = deboInCard.reduce((sum, r) => sum + parseDecimal(r.Importe), 0) + manualDeboImportes;
+            const totalExternal = externalRows.reduce((sum, r) => sum + parseDecimal(r.Importe), 0) + manualExtImportes;
 
             planillaTotalDebo += totalDebo;
             planillaTotalClover += totalExternal;
 
             cardGroups[tarjeta] = {
-                matched,
-                onlyDebo,
-                onlyClover: onlyExternal, // UI compatibility
-                totals: {
-                    debo: totalDebo,
-                    clover: totalExternal, // UI compatibility
-                    diff: totalDebo - totalExternal
-                },
-                isMeli: isMeli,
-                isAppYpf: isAppYpf,
-                isPedidosYa: isPedidosYa
+                matched, onlyDebo, onlyClover: onlyExternal,
+                totals: { debo: totalDebo, clover: totalExternal, diff: totalDebo - totalExternal },
+                isMeli, isAppYpf, isPedidosYa
             };
         });
 

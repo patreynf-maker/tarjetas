@@ -177,6 +177,9 @@ function normalizeDeboCard(val) {
     }
 
     // Handle App YPF variants
+    if (name.includes('descuentos app ypf')) {
+        return 'DESCUENTOS APP YPF';
+    }
     if (name.includes('app ypf') || name.includes('appyf') || name.includes('ypf app') || name.includes('ypfapp')) {
         return 'APP YPF';
     }

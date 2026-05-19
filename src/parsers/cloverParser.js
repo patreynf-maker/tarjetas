@@ -78,12 +78,8 @@ export function parseClover(data) {
         let marcaTarjeta = (row[colMarcaTarjeta] || '').trim();
         const nota = (row[colNota] || '').trim();
 
-        // Extract card brand and lote from "ID QR" notes
+        // Extract lote from "ID QR" notes (do NOT override marcaTarjeta with medio)
         if (nota.toUpperCase().includes('ID QR')) {
-            const medioMatch = nota.match(/medio\s*:\s*([^,;]+)/i);
-            if (medioMatch && medioMatch[1]) {
-                marcaTarjeta = medioMatch[1].trim();
-            }
             const loteMatch = nota.match(/lote\s*:\s*([^,;]+)/i);
             if (loteMatch && loteMatch[1]) {
                 numLote = parseIntegerClover(loteMatch[1].trim());
@@ -292,20 +288,28 @@ function normalizeCloverCard(val) {
     if (!val) return '';
     let name = String(val).toLowerCase().trim();
 
-    // Explicitly handle "transferencia" and "qr posnet"
-    if (name.includes('transferencia') || name.includes('qr posnet')) {
+    // Si contiene transferencia, siempre va a transferencia
+    if (name.includes('transferencia')) {
         return 'TRANSFERENCIA';
     }
+
+    // Por retrocompatibilidad por si queda algún qr posnet dando vueltas
+    if (name.includes('qr posnet')) {
+        return 'TRANSFERENCIA';
+    }
+
+    // Extraemos la palabra "modo " si existe
+    name = name.replace('modo ', '').trim();
 
     // Remove numbers
     name = name.replace(/[0-9]/g, '').trim();
 
     // Specific mappings
-    if (name === 'visa') {
+    if (name === 'visa' || name === 'visa credito') {
         name = 'VISA CREDITO';
     } else if (name === 'mc debit' || name === 'mastercard debit' || name === 'mastercard debito') {
         name = 'MC DEBITO';
-    } else if (name === 'mastercard' || name === 'mc' || name === 'master') {
+    } else if (name === 'mastercard' || name === 'mc' || name === 'master' || name === 'mc credito') {
         name = 'MC CREDITO';
     } else {
         name = name.toUpperCase();

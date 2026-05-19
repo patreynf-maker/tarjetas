@@ -557,8 +557,12 @@ function renderReconciliation() {
                 <tbody>
                   ${matched.map(m => `
                     <tr class="recon-row match ${m.status === 'diff' ? 'highlight' : 'ok'} ${m.isManual ? 'manual-match' : ''} ${m.debo._isDuplicate ? 'duplicate' : ''}" 
-                        data-id="${m.debo._id}" data-source="debo" title="${m.debo._isDuplicate ? 'Registro duplicado en DEBO' : ''}">
-                      <td>${m.debo._isDuplicate ? '<span class="dup-tag">DUP</span> ' : ''}${group.isAppYpf ? (m.debo.Hora || '-') : (group.isPedidosYa ? (m.debo['Cupón'] || '-') : (group.isMeli ? m.debo.Lote : m.debo['Cupón']))}</td>
+                        data-id="${m.debo._id}" data-source="debo" title="${m.debo._isDuplicate ? 'Registro duplicado en DEBO' : ''}${m.debo._originalTarjeta ? ' (Movido desde ' + m.debo._originalTarjeta + ')' : ''}">
+                      <td>
+                        ${m.debo._isDuplicate ? '<span class="dup-tag">DUP</span>' : ''}
+                        ${m.debo._originalTarjeta ? `<span class="moved-tag" title="Originalmente en ${m.debo._originalTarjeta}">MUV ${m.debo._originalTarjeta}</span>` : ''}
+                        ${group.isAppYpf ? (m.debo.Hora || '-') : (group.isPedidosYa ? (m.debo['Cupón'] || '-') : (group.isMeli ? m.debo.Lote : m.debo['Cupón']))}
+                      </td>
                       <td class="importe-cell">$ ${m.debo.Importe}</td>
                     </tr>
                   `).join('')}

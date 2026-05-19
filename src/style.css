@@ -1249,17 +1249,24 @@ input[type='time']::-webkit-clear-button {
   border-left: 3px solid var(--color-warning);
 }
 
-.dup-tag {
-  background: var(--color-warning);
-  color: white;
-  font-size: 8px;
+.dup-tag, .moved-tag {
+  font-size: 9px;
   padding: 1px 4px;
   border-radius: 3px;
   font-weight: 800;
-  margin-right: 6px;
+  margin-right: 4px;
   display: inline-block;
-  white-space: nowrap;
   vertical-align: middle;
+}
+
+.dup-tag {
+  background: var(--color-error);
+  color: white;
+}
+
+.moved-tag {
+  background: var(--accent-secondary);
+  color: white;
 }
 
 .recon-row.manual-match {
